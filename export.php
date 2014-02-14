@@ -33,7 +33,45 @@ CREATESQL;
 		$pdo->query( $create_sql );
 	}
 	
-	$insert = $pdo->prepare( 'insert into incidents ( type, status, date, time, county, location, hash ) values ( :type, :status, :date, :time, :county, :location, :hash )' );
+	// now make sure our new incident ID field is there
+	try {
+		$pdo->prepare( 'select incident from incidents limit 1' );
+	}
+	catch ( PDOException $e ) {
+		$update_sql = <<<UPDATESQL
+alter table incidents
+add column incident varchar(255) null;
+UPDATESQL;
+
+		$pdo->query( $update_sql );
+		
+		// and update all the incidents -- this sucks
+		$migrate_update = $pdo->prepare( 'update incidents set incident = ? where type = ? and status = ? and date = ? and time = ? and county = ? and location = ? and hash = ?' );
+		$migrate_select = $pdo->prepare( 'select * from incidents where incident is null' );
+		$migrate_select->execute();
+		
+		while ( $result = $migrate_select->fetch( PDO::FETCH_ASSOC ) ) {
+			
+			$incident_hash = sha1( implode( '|', array( $result['type'], $result['date'], $result['time'], $result['county'] ) ) );
+			
+			$migrate_update->execute(
+				array(
+					$incident_hash,
+					$result['type'],
+					$result['status'],
+					$result['date'],
+					$result['time'],
+					$result['county'],
+					$result['location'],
+					$result['hash'],
+				)
+			);
+			
+		}
+	}
+	
+	
+	$insert = $pdo->prepare( 'insert into incidents ( type, status, date, time, county, location, hash, incident ) values ( :type, :status, :date, :time, :county, :location, :hash, :incident )' );
 	
 	$s = new SCHPTrafficInfo\SCHPTrafficInfo();
 	
@@ -42,6 +80,7 @@ CREATESQL;
 	foreach ( $incidents as $incident ) {
 		
 		$incident['hash'] = sha1( implode( '|', $incident ) );
+		$incident['incident'] = sha1( implode( '|', array( $incident['type'], $incident['date'], $incident['time'], $incident['county'] ) ) );
 		
 		try {
 			$insert->execute( $incident );
