@@ -27,7 +27,7 @@ create table incidents (
 	county varchar(50) not null,
 	location varchar(50) not null,
 	hash varchar(40) not null PRIMARY KEY
-);		
+);
 CREATESQL;
 
 		$pdo->query( $create_sql );
