@@ -46,7 +46,7 @@ UPDATESQL;
 		$pdo->query( $update_sql );
 		
 		// and update all the incidents -- this sucks
-		$migrate_update = $pdo->prepare( 'update incidents set incident = ? where type = ? and status = ? and date = ? and time = ? and county = ? and location = ? and hash = ?' );
+		$migrate_update = $pdo->prepare( 'update incidents set incident = ? where hash = ?' );
 		$migrate_select = $pdo->prepare( 'select * from incidents where incident is null' );
 		$migrate_select->execute();
 		
@@ -57,12 +57,6 @@ UPDATESQL;
 			$migrate_update->execute(
 				array(
 					$incident_hash,
-					$result['type'],
-					$result['status'],
-					$result['date'],
-					$result['time'],
-					$result['county'],
-					$result['location'],
 					$result['hash'],
 				)
 			);
