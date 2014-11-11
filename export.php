@@ -88,6 +88,24 @@ UPDATESQL;
 		// we're not going to update old entries, they will simply have null values
 	}
 	
+	// see if we have any incident dates that are empty
+	$migrate_update = $pdo->prepare( 'update incidents set date_incident = ? where hash = ?' );
+	$migrate_select = $pdo->prepare( 'select * from incidents where date_incident is null' );
+	$migrate_select->execute();
+	
+	while ( $result = $migrate_select->fetch( PDO::FETCH_ASSOC ) ) {
+	
+		$date = new \DateTime( $result['date'] . ' ' . $result['time'] );
+		
+		$migrate_update->execute(
+			array(
+				$date->format( \DateTime::ISO8601 ),
+				$result['hash']
+			)
+		);
+		
+	}
+		
 	
 	$insert = $pdo->prepare( 'insert into incidents ( type, status, date, time, county, location, hash, incident, date_incident, date_entered ) values ( :type, :status, :date, :time, :county, :location, :hash, :incident, :date_incident, :date_entered )' );
 	
