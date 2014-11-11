@@ -1,5 +1,7 @@
 <?php
 
+	date_default_timezone_set( 'America/New_York' );
+
 	error_reporting(-1);
 	ini_set('display_errors', true);
 	
@@ -64,26 +66,68 @@ UPDATESQL;
 		}
 	}
 	
+	// now make sure our new date_incident and date_entered fields are there
+	try {
+		$pdo->prepare( 'select date_entered from incidents limit 1' );
+	}
+	catch ( PDOException $e ) {
+		$update_sql1 = <<<UPDATESQL
+alter table incidents
+add column date_incident varchar(24) null;
+UPDATESQL;
+
+		$pdo->query( $update_sql1 );
+		
+		$update_sql2 = <<<UPDATESQL
+alter table incidents
+add column date_entered varchar(24) null;
+UPDATESQL;
+
+		$pdo->query( $update_sql2 );
+		
+		// we're not going to update old entries, they will simply have null values
+	}
 	
-	$insert = $pdo->prepare( 'insert into incidents ( type, status, date, time, county, location, hash, incident ) values ( :type, :status, :date, :time, :county, :location, :hash, :incident )' );
+	
+	$insert = $pdo->prepare( 'insert into incidents ( type, status, date, time, county, location, hash, incident, date_incident, date_entered ) values ( :type, :status, :date, :time, :county, :location, :hash, :incident, :date_incident, :date_entered )' );
 	
 	$s = new SCHPTrafficInfo\SCHPTrafficInfo();
 	
 	$incidents = $s->get_incidents();
 	
+	$inserted = 0;
+	$duplicate = 0;
 	foreach ( $incidents as $incident ) {
 		
-		$incident['hash'] = sha1( implode( '|', $incident ) );
-		$incident['incident'] = sha1( implode( '|', array( $incident['type'], $incident['date'], $incident['time'], $incident['county'] ) ) );
+		$now = new \DateTime();
+		
+		// start with the raw fields we don't modify
+		$db_incident = array(
+			'type' => $incident['type'],
+			'status' => $incident['status'],
+			'date' => $incident['date'],
+			'time' => $incident['time'],
+			'county' => $incident['county'],
+			'location' => $incident['location'],
+		);
+		
+		// then the ones we have to do a little calculation on
+		$db_incident['hash'] = sha1( implode( '|', array( $incident['type'], $incident['status'], $incident['date'], $incident['time'], $incident['county'], $incident['location'] ) ) );
+		$db_incident['incident'] = sha1( implode( '|', array( $incident['type'], $incident['date'], $incident['time'], $incident['county'] ) ) );
+		$db_incident['date_entered'] = $now->format( \DateTime::ISO8601 );
+		$db_incident['date_incident'] = $incident['datetime']->format( \DateTime::ISO8601 );
 		
 		try {
-			$insert->execute( $incident );
+			$insert->execute( $db_incident );
+			
+			$inserted++;
 		}
 		catch ( PDOException $e ) {
 			
 			if ( $e->getCode() == 23000 ) {
 				// this is an integrity constraint violation - we don't do updates
 				// just ignore it
+				$duplicate++;
 			}
 			else {
 				echo $e->getMessage() . "\n";
@@ -93,6 +137,6 @@ UPDATESQL;
 		
 	}
 	
-	echo 'Wrote ' . count( $incidents ) . ' incidents' . "\n";
+	echo 'Got ' . count( $incidents ) . ' incidents, wrote ' . $inserted . ', ' . $duplicate . ' duplicates' . "\n";
 
 ?>
