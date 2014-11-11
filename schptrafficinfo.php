@@ -22,14 +22,19 @@
 				
 				$tds = $xpath->query( './td', $row );
 				
-				$incidents[] = array(
+				$incident = array(
 					'type' => trim( $tds->item(0)->nodeValue ),
 					'status' => trim( $tds->item(1)->nodeValue ),
 					'date' => trim( $tds->item(2)->nodeValue ),
 					'time' => trim( $tds->item(3)->nodeValue ),
 					'county' => trim( $tds->item(4)->nodeValue ),
 					'location' => trim( $tds->item(5)->nodeValue ),
+					'datetime' => null,
 				);
+				
+				$incident['datetime'] = new \DateTime( $incident['date'] . ' ' . $incident['time'] );
+				
+				$incidents[] = $incident;
 				
 			}
 			
