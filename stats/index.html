@@ -1,0 +1,56 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>South Carolina Traffic Incidents</title>
+
+	<link rel="stylesheet" href="assets/css/normalize.css">
+	<link rel="stylesheet" href="assets/css/foundation.css">
+	<link rel="stylesheet" href="assets/css/style.css">
+	
+	<script src="assets/js/vendor/modernizr.js"></script>
+</head>
+<body>
+	
+	<div class="row">
+		<div class="large-12 columns">
+			<h1>Traffic Incidents in South Carolina</h1>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="large-12 columns">
+			<p>During our one big winter storm in February, 2014 I discovered that the <a href="http://www.scdps.gov/schp/">South Carolina Highway Patrol</a> provides a website that lists all the <a href="http://www.scdps.gov/schp/schpwebcad/">current traffic incidents</a> reported in the state.</p>
+			<p class="disclaimer"><strong>One Important Note:</strong> The SCHP data does not define any sort of identifier for an "incident", so I've done the best I can to infer which records represent a distinct event. I've found that the Location reported for an incident is frequently updated after an officer arrives on the scene, so we are only able to use Incident Type, Date, Time, and County to represent a unique event. That means that if there are two wrecks reported in Greenville County at the exact same time (rush hour?) we'll have no way of knowing and would under-count the number of incidents. This also applies if the officer updates the Incident Type, which would cause us to over-count the event. As a result none of these numbers should be used independently, we can only compare the relative change over time.</p>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="large-12 columns">
+			<div id="incidents-by-week"></div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="large-12 columns">
+			<div id="incidents-by-day-of-week"></div>
+		</div>
+	</div>
+	
+	<div class="row">
+		<div class="large-12 columns">
+			<div id="incidents-by-type-and-week"></div>
+		</div>
+	</div>
+	
+	<script src="assets/js/vendor/jquery.js"></script>
+	<!--<script src="assets/js/foundation.min.js"></script>-->
+	<script src="http://code.highcharts.com/highcharts.js"></script>
+	<script src="assets/js/app.js"></script>
+	<!--<script>
+		$(document).foundation();
+	</script>-->
+	
+</body>
+</html>

@@ -1,0 +1,14 @@
+body {
+	height: 100%;
+	padding-bottom: 10rem;
+}
+
+.disclaimer {
+	font-size: 80%;
+}
+
+#incidents-by-week,
+#incidents-by-type-and-week {
+	width: 100%;
+	height: 400px;
+}
